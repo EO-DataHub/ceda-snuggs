@@ -4,12 +4,12 @@ $graph:
   doc: Applies s expressions to EO acquisitions
   id: snuggs
   requirements:
-  ScatterFeatureRequirement: {}
-  ResourceRequirement:
-    ramMin: 10240
-    coresMin: 4
-    tmpdirMin: 10000
-    outdirMin: 10000
+    ScatterFeatureRequirement: {}
+    ResourceRequirement:
+      ramMin: 10240
+      coresMin: 4
+      tmpdirMin: 10000
+      outdirMin: 10000
   inputs:
     input_reference:
       doc: Input product reference
