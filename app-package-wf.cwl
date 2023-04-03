@@ -7,7 +7,9 @@ $graph:
   ScatterFeatureRequirement: {}
   ResourceRequirement:
     ramMin: 10240
-    coresMin: 6
+    coresMin: 4
+    tmpdirMin: 10000
+    outdirMin: 10000
   inputs:
     input_reference:
       doc: Input product reference
