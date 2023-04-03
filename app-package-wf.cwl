@@ -68,8 +68,8 @@ $graph:
       envDef:
         PATH: /srv/conda/envs/env_app_snuggs/bin:/srv/conda/bin:/srv/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     ResourceRequirement:
-      ramMin: 10240
-      coresMin: 3
+      ramMin: 1024
+      coresMin: 1
     InlineJavascriptRequirement: {}
     DockerRequirement:
       dockerPull: eoepca/snuggs:0.3.0
