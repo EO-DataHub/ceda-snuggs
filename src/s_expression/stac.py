@@ -30,7 +30,7 @@ def get_asset(item, band_name):
     asset_href = None
 
     eo_item = extensions.eo.EOExtension.ext(item)
- 
+
     # Get bands
     if (eo_item.bands) is not None:
 
@@ -44,10 +44,9 @@ def get_asset(item, band_name):
 
     # read the asset key (no success with common band name)
     if asset is None:
-        
+
         asset = item.assets[band_name]
         asset_href = fix_asset_href(asset.get_absolute_href())
-
 
     return (asset, asset_href)
 

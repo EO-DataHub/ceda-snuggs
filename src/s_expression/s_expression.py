@@ -6,6 +6,7 @@ import numpy as np
 from collections import OrderedDict
 from .stac import get_asset
 
+
 def get_resolution(item, s_expression):
 
     resolution = 10000
