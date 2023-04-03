@@ -4,7 +4,10 @@ $graph:
   doc: Applies s expressions to EO acquisitions
   id: snuggs
   requirements:
-  - class: ScatterFeatureRequirement
+  ScatterFeatureRequirement: {}
+  ResourceRequirement:
+    ramMin: 10240
+    coresMin: 6
   inputs:
     input_reference:
       doc: Input product reference
