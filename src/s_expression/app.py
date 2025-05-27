@@ -113,12 +113,12 @@ def calculate(ctx, input_reference, s_expression, cbn, assets=None):
     logging.info("Done!")
 
 @cli.command(
-    help="Joins two STAC catalogs into a single catalog",
+    help="Joins multiple STAC catalogs into a single catalog",
 )
 @click.option(
     "--stac_catalog_dir",
     "-d",
-    type=click.Path(path_type=Path),  # type: ignore[type-var]
+    type=click.Path(path_type=Path),
     multiple=True,
     required=True,
     help="Path to the STAC catalog directories (can be provided multiple times for multiple catalogs)",
@@ -126,20 +126,13 @@ def calculate(ctx, input_reference, s_expression, cbn, assets=None):
 @click.option(
     "--output_dir",
     "-o",
-    type=click.Path(path_type=Path),  # type: ignore[type-var]
-    help="Path to the output directory - will create new dir in CWD if not provided",
+    type=click.Path(path_type=Path),
+    help="Path to the output directory - if not provided, defaults to 'stac-join' in the current working directory",
 )
 def join(stac_catalog_dir: list[Path], output_dir: Optional[Path] = None) -> None:
-    logging.info(
-        "Running with:\n%s",
-        json.dumps(
-            {
-                "stac_catalog_dir": [d.as_posix() for d in stac_catalog_dir],
-                "output_dir": output_dir.as_posix() if output_dir is not None else None,
-            },
-            indent=4,
-        ),
-    )
+    logging.info("Joining STAC catalogs ...")
+    logging.info(f"Input STAC catalog directories: {stac_catalog_dir}")
+    logging.info(f"Output directory: {output_dir}")
 
     # Verify catalog.json exists
     for cat in stac_catalog_dir:
@@ -152,7 +145,7 @@ def join(stac_catalog_dir: list[Path], output_dir: Optional[Path] = None) -> Non
 
     # Handle single catalog
     if len(stac_catalog_dir) == 1:
-        logging.info("Single STAC catalog passed as input. Nothing to do ... Copying STAC directory as is to output directory")
+        logging.info("Single STAC catalog passed as input. Copying STAC directory to output directory")
         shutil.copytree(stac_catalog_dir[0], output_dir, dirs_exist_ok=True)
         return
 
