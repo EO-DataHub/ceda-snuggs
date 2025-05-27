@@ -1,4 +1,4 @@
-.PHONY: dockerbuild dockerpush test testonce ruff black lint isort pre-commit-check requirements-update requirements setup
+.PHONY: dockerbuild dockerpush ruff black lint isort pre-commit-check requirements setup
 VERSION ?= latest
 IMAGENAME = ceda-snuggs
 DOCKERREPO ?= public.ecr.aws/eodh
