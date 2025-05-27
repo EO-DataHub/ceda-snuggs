@@ -1,18 +1,16 @@
-import os
-import sys
 import logging
+import os
+import shutil
+import sys
+from pathlib import Path
+from typing import Optional
+
 import click
 from click2cwl import dump
-import logging
+from pystac import Asset, Catalog, CatalogType, Item, MediaType
+
 from .s_expression import apply_s_expression
-from typing import Optional
 from .stac import get_item, merge_stac_catalogs
-from pystac import Item, Asset, MediaType, extensions, Catalog, CatalogType
-
-import shutil
-from pathlib import Path
-import json
-
 
 logging.basicConfig(
     stream=sys.stderr,
@@ -21,9 +19,11 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%S",
 )
 
+
 @click.group()
 def cli() -> None:
     """Top Level CLI."""
+
 
 @cli.command(
     short_help="s expressions",
@@ -45,7 +45,9 @@ def cli() -> None:
     "--s-expression", "-s", "s_expression", help="s expression", required=True
 )
 @click.option("--cbn", "-b", "cbn", help="Common band name", required=True)
-@click.option("--assets", "-a", "assets", help="Assets to Load", required=False, multiple=True)
+@click.option(
+    "--assets", "-a", "assets", help="Assets to Load", required=False, multiple=True
+)
 @click.pass_context
 def calculate(ctx, input_reference, s_expression, cbn, assets=None):
 
@@ -68,7 +70,9 @@ def calculate(ctx, input_reference, s_expression, cbn, assets=None):
 
     logging.info(f"Apply {s_expression} to {item.id}")
 
-    apply_s_expression(item=item, s_expression=s_expression, out_tif=result, assets=assets)
+    apply_s_expression(
+        item=item, s_expression=s_expression, out_tif=result, assets=assets
+    )
 
     item_out = Item(
         id=item.id,
@@ -112,6 +116,7 @@ def calculate(ctx, input_reference, s_expression, cbn, assets=None):
 
     logging.info("Done!")
 
+
 @cli.command(
     help="Joins multiple STAC catalogs into a single catalog",
 )
@@ -145,7 +150,9 @@ def join(stac_catalog_dir: list[Path], output_dir: Optional[Path] = None) -> Non
 
     # Handle single catalog
     if len(stac_catalog_dir) == 1:
-        logging.info("Single STAC catalog passed as input. Copying STAC directory to output directory")
+        logging.info(
+            "Single STAC catalog passed as input. Copying STAC directory to output directory"
+        )
         shutil.copytree(stac_catalog_dir[0], output_dir, dirs_exist_ok=True)
         return
 

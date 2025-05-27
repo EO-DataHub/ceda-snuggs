@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-from io import open
+from setuptools import find_packages, setup
 
 console_scripts = []
 

@@ -1,10 +1,11 @@
-from pystac import read_file, Item, Catalog, extensions, Asset, CatalogType
-from urllib.parse import urlparse
-from tqdm import tqdm
+import logging
 import shutil
 from pathlib import Path
+from urllib.parse import urlparse
+
 import click
-import logging
+from pystac import Catalog, CatalogType, Item, extensions, read_file
+from tqdm import tqdm
 
 
 def get_item(reference):
@@ -74,12 +75,18 @@ def fix_asset_href(uri):
 
         return uri
 
-def write_local_stac(stac: Catalog, output_stac_path: Path, title: str, description: str) -> None:
+
+def write_local_stac(
+    stac: Catalog, output_stac_path: Path, title: str, description: str
+) -> None:
     stac.set_self_href(output_stac_path.as_posix())
     stac.title = title
     stac.description = description
     stac.make_all_asset_hrefs_relative()
-    stac.normalize_and_save(output_stac_path.as_posix(), catalog_type=CatalogType.SELF_CONTAINED)
+    stac.normalize_and_save(
+        output_stac_path.as_posix(), catalog_type=CatalogType.SELF_CONTAINED
+    )
+
 
 def merge_stac_catalogs(stac_catalog_dirs: list[Path], output_dir: Path) -> None:
     # Create an empty root catalog for the merged output
@@ -133,5 +140,6 @@ def merge_stac_catalogs(stac_catalog_dirs: list[Path], output_dir: Path) -> None
 
     # Save the merged catalog to the output directory
     merged_catalog.make_all_asset_hrefs_relative()
-    merged_catalog.normalize_and_save(output_dir.as_posix(), catalog_type=CatalogType.SELF_CONTAINED)
-
+    merged_catalog.normalize_and_save(
+        output_dir.as_posix(), catalog_type=CatalogType.SELF_CONTAINED
+    )

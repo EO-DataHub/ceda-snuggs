@@ -1,11 +1,12 @@
-import os
-import snuggs
-import re
-import gdal
-import numpy as np
-from collections import OrderedDict
-from .stac import get_asset
 import logging
+import os
+import re
+from collections import OrderedDict
+
+import gdal
+import snuggs
+
+from .stac import get_asset
 
 
 def get_resolution(item, s_expression, assets):
@@ -204,7 +205,7 @@ def apply_s_expression(item, out_tif, s_expression, assets):
 
     dst_ds.BuildOverviews("NEAREST", [2, 4, 8, 16, 32, 64])
 
-    output = driver.CreateCopy(
+    _ = driver.CreateCopy(
         os.path.join(out_tif),
         dst_ds,
         options=["COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=DEFLATE"],
