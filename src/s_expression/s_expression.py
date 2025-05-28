@@ -205,7 +205,7 @@ def apply_s_expression(item, out_tif, s_expression, assets):
 
     dst_ds.BuildOverviews("NEAREST", [2, 4, 8, 16, 32, 64])
 
-    _ = driver.CreateCopy(
+    driver.CreateCopy(
         os.path.join(out_tif),
         dst_ds,
         options=["COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=DEFLATE"],
