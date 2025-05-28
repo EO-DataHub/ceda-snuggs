@@ -91,7 +91,7 @@ $graph:
       coresMin: 3
     InlineJavascriptRequirement: {}
     DockerRequirement:
-      dockerPull: public.ecr.aws/eodh/ceda-snuggs:0.0.8
+      dockerPull: public.ecr.aws/eodh/ceda-snuggs:0.1.0
 
 - baseCommand: ["s-expression", "join"]
   class: CommandLineTool
@@ -102,7 +102,7 @@ $graph:
       ramMax: 4096
   hints:
     DockerRequirement:
-      dockerPull: public.ecr.aws/eodh/ceda-snuggs:0.0.8
+      dockerPull: public.ecr.aws/eodh/ceda-snuggs:0.1.0
   
   inputs:
     stac_catalog_dir:
