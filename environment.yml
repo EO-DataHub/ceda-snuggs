@@ -9,3 +9,4 @@ dependencies:
   - gdal=3.1.4
   - snuggs
   - pystac
+  - tqdm

@@ -1,12 +1,16 @@
-import os
-import sys
 import logging
+import os
+import shutil
+import sys
+from pathlib import Path
+from typing import Optional
+
 import click
 from click2cwl import dump
-import logging
+from pystac import Asset, Catalog, CatalogType, Item, MediaType
+
 from .s_expression import apply_s_expression
-from .stac import get_item
-from pystac import Item, Asset, MediaType, extensions, Catalog, CatalogType
+from .stac import get_item, merge_stac_catalogs
 
 logging.basicConfig(
     stream=sys.stderr,
@@ -16,7 +20,12 @@ logging.basicConfig(
 )
 
 
-@click.command(
+@click.group()
+def cli() -> None:
+    """Top Level CLI."""
+
+
+@cli.command(
     short_help="s expressions",
     help="Applies s expressions to EO acquisitions",
     context_settings=dict(
@@ -36,14 +45,19 @@ logging.basicConfig(
     "--s-expression", "-s", "s_expression", help="s expression", required=True
 )
 @click.option("--cbn", "-b", "cbn", help="Common band name", required=True)
+@click.option(
+    "--assets", "-a", "assets", help="Assets to Load", required=False, multiple=True
+)
 @click.pass_context
-def main(ctx, input_reference, s_expression, cbn):
+def calculate(ctx, input_reference, s_expression, cbn, assets=None):
 
     dump(ctx)
 
     item = get_item(input_reference)
 
     logging.info(f"Processing {item.id}")
+    if assets:
+        logging.info(f"Assets: {assets}")
 
     try:
         os.mkdir(item.id)
@@ -56,9 +70,9 @@ def main(ctx, input_reference, s_expression, cbn):
 
     logging.info(f"Apply {s_expression} to {item.id}")
 
-    apply_s_expression(item=item, s_expression=s_expression, out_tif=result)
-
-    logging.info("STAC")
+    apply_s_expression(
+        item=item, s_expression=s_expression, out_tif=result, assets=assets
+    )
 
     item_out = Item(
         id=item.id,
@@ -94,8 +108,6 @@ def main(ctx, input_reference, s_expression, cbn):
 
     item_out.add_asset(key=cbn.lower(), asset=asset)
 
-    logging.info("STAC")
-
     cat = Catalog(id="catalog", description="s-expression")
 
     cat.add_items([item_out])
@@ -105,5 +117,50 @@ def main(ctx, input_reference, s_expression, cbn):
     logging.info("Done!")
 
 
+@cli.command(
+    help="Joins multiple STAC catalogs into a single catalog",
+)
+@click.option(
+    "--stac_catalog_dir",
+    "-d",
+    type=click.Path(path_type=Path),
+    multiple=True,
+    required=True,
+    help="Path to the STAC catalog directories (can be provided multiple times for multiple catalogs)",
+)
+@click.option(
+    "--output_dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    help="Path to the output directory - if not provided, defaults to 'stac-join' in the current working directory",
+)
+def join(stac_catalog_dir: list[Path], output_dir: Optional[Path] = None) -> None:
+    logging.info("Joining STAC catalogs ...")
+    logging.info(f"Input STAC catalog directories: {stac_catalog_dir}")
+    logging.info(f"Output directory: {output_dir}")
+
+    # Verify catalog.json exists
+    for cat in stac_catalog_dir:
+        if not (cat / "catalog.json").exists():
+            msg = f"catalog.json does not exist under {cat.as_posix()}"
+            raise ValueError(msg)
+
+    output_dir = output_dir or Path.cwd() / "stac-join"
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+    # Handle single catalog
+    if len(stac_catalog_dir) == 1:
+        logging.info(
+            "Single STAC catalog passed as input. Copying STAC directory to output directory"
+        )
+        shutil.copytree(stac_catalog_dir[0], output_dir, dirs_exist_ok=True)
+        return
+
+    merge_stac_catalogs(
+        stac_catalog_dirs=stac_catalog_dir,
+        output_dir=output_dir,
+    )
+
+
 if __name__ == "__main__":
-    main()
+    cli()

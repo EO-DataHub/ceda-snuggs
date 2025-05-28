@@ -1,20 +1,25 @@
+import logging
 import os
-import snuggs
 import re
-import gdal
-import numpy as np
 from collections import OrderedDict
+
+import gdal
+import snuggs
+
 from .stac import get_asset
 
 
-def get_resolution(item, s_expression):
+def get_resolution(item, s_expression, assets):
 
     resolution = 10000
-    common_band_names = parse_expression(s_expression)
+    if assets:
+        asset_names = assets
+    else:
+        asset_names = parse_expression(s_expression)
 
-    for index, common_name in enumerate(common_band_names):
+    for index, asset_name in enumerate(asset_names):
 
-        _, asset_href = get_asset(item, common_name)
+        _, asset_href = get_asset(item, asset_name)
 
         if not asset_href:
 
@@ -29,17 +34,21 @@ def get_resolution(item, s_expression):
     return resolution
 
 
-def pre_process(item, s_expression):
+def pre_process(item, s_expression, assets):
 
-    assets = OrderedDict()
+    assets_dict = OrderedDict()
 
-    resolution = get_resolution(item, s_expression)
+    resolution = get_resolution(item, s_expression, assets)
 
-    common_band_names = parse_expression(s_expression)
+    # Will extract assets based on required bands
+    if assets:
+        asset_names = assets
+    else:
+        asset_names = parse_expression(s_expression)
 
-    for index, common_name in enumerate(common_band_names):
+    for index, asset_name in enumerate(asset_names):
 
-        _, asset_href = get_asset(item, common_name)
+        _, asset_href = get_asset(item, asset_name)
 
         if not asset_href:
 
@@ -49,20 +58,20 @@ def pre_process(item, s_expression):
 
         if _ds.GetGeoTransform()[1] == resolution:
 
-            assets[common_name] = asset_href
+            assets_dict[asset_name] = asset_href
 
         else:
 
             gdal.Translate(
-                "{}_{}.tif".format(common_name, resolution),
+                "{}_{}.tif".format(asset_name, resolution),
                 _ds,
                 xRes=resolution,
                 yRes=resolution,
             )
 
-            assets[common_name] = "{}_{}.tif".format(common_name, resolution)
+            assets_dict[asset_name] = "{}_{}.tif".format(asset_name, resolution)
 
-    return assets
+    return assets_dict
 
 
 def get_empty_ds(ds, out_tif, band_count):
@@ -118,10 +127,23 @@ def parse_expression(s_expression):
     return bands
 
 
-def apply_s_expression(item, out_tif, s_expression):
+def apply_s_expression(item, out_tif, s_expression, assets):
     # reads an input tif, applies the expression and writes the output tif
     # uses blocks to reduce the memory footprint
-    asset_hrefs = pre_process(item, s_expression)
+    asset_hrefs = pre_process(item, s_expression, assets)
+
+    if not asset_hrefs:
+        logging.error("No assets found")
+        if not assets:
+            logging.error("Consider specifying assets in inputs")
+        else:
+            logging.error("Provided assets not found in item, check spelling")
+        return
+
+    common_band_names = parse_expression(s_expression)
+
+    logging.info(f"Processing {len(asset_hrefs)} assets")
+    logging.info(f"Assets: {asset_hrefs.keys()}")
 
     ds = gdal.Open(list(asset_hrefs.values())[0])
 
@@ -144,15 +166,26 @@ def apply_s_expression(item, out_tif, s_expression):
 
             ctx = dict()
 
-            for common_name, asset_href in asset_hrefs.items():
+            for asset_name, asset_href in asset_hrefs.items():
 
                 _ds = gdal.Open(asset_href)
 
-                _band = _ds.GetRasterBand(1)
+                if assets:
+                    for i in range(1, _ds.RasterCount + 1):
+                        _band = _ds.GetRasterBand(i)
 
-                ctx[common_name] = _band.ReadAsArray(
-                    offset_x, offset_y, cols, rows
-                ).astype(np.float)
+                        if _band.GetDescription() in common_band_names:
+
+                            ctx[_band.GetDescription()] = _band.ReadAsArray(
+                                offset_x, offset_y, cols, rows
+                            ).astype(float)
+
+                else:
+                    _band = _ds.GetRasterBand(1)
+
+                    ctx[asset_name] = _band.ReadAsArray(
+                        offset_x, offset_y, cols, rows
+                    ).astype(float)
 
                 _band = None
 
@@ -172,10 +205,12 @@ def apply_s_expression(item, out_tif, s_expression):
 
     dst_ds.BuildOverviews("NEAREST", [2, 4, 8, 16, 32, 64])
 
-    output = driver.CreateCopy(
+    driver.CreateCopy(
         os.path.join(out_tif),
         dst_ds,
         options=["COPY_SRC_OVERVIEWS=YES", "TILED=YES", "COMPRESS=DEFLATE"],
     )
+
+    logging.info(f"Data saved to {os.path.join(out_tif)}")
 
     os.remove("temp.tif")

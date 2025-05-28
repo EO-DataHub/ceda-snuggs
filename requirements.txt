@@ -1,0 +1,9 @@
+click
+click2cwl
+gdal==3.1.4
+snuggs
+pystac
+tqdm
+ruff
+isort
+black
