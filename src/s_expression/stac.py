@@ -90,10 +90,10 @@ def write_local_stac(
 
 def merge_stac_catalogs(stac_catalog_dirs: list[Path], output_dir: Path) -> None:
     # Create an empty root catalog for the merged output
-    merged_catalog = Catalog(id="", description="Merged STAC Catalog")
+    merged_catalog = Catalog(id="catalogs", description="Merged STAC Catalog")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    source_data_dir = output_dir / "source_data"
+    source_data_dir = output_dir
     source_data_dir.mkdir(parents=True, exist_ok=True)
 
     # Create list to track copied items
