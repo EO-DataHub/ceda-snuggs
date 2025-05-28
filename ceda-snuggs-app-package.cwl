@@ -2,7 +2,7 @@ cwlVersion: v1.0
 
 $namespaces:
   s: https://schema.org/
-s:softwareVersion: 0.3.0
+s:softwareVersion: 0.1.0
 schemas:
 - http://schema.org/version/9.0/schemaorg-current-http.rdf
 
@@ -10,7 +10,7 @@ schemas:
 $graph:
 
 - class: Workflow
-  doc: Applies s expressions to EO acquisitions
+  doc: Applies s expressions to EO acquisitions, including CEDA datasets
   id: ceda-snuggs
   requirements:
   - class: ScatterFeatureRequirement
