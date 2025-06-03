@@ -66,9 +66,14 @@ $graph:
   - valueFrom: ${ return inputs.s_expression.split(":")[1]; }
   - --cbn
   - valueFrom: ${ return inputs.s_expression.split(":")[0]; }
-  - --assets
-  - valueFrom: | 
-                $(inputs.assets ? inputs.assets.join(" ") : null)
+  - valueFrom: >
+      ${
+        if (Array.isArray(inputs.assets) && inputs.assets[0] !== "NULL") {
+          return inputs.assets.map(a => ["--assets", a]).flat();
+        } else {
+          return null;
+        }
+      }
   
   inputs:
     input_reference:
