@@ -46,8 +46,6 @@ jobs:
 
   publish:
     name: Build and push Docker image
-    permissions:
-      contents: read
     needs: [get-tag-name]
     uses: EO-DataHub/github-actions/.github/workflows/ecr-publish.yaml@main
     with:
